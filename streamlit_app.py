@@ -196,6 +196,7 @@ if st.button(
 
             # -------- Warnings --------
             if warnings:
+                st.session_state["generated_file"] = expected_output_path
                 st.warning("⚠ Validation Warnings")
 
                 for warn in warnings:
@@ -228,4 +229,5 @@ if "generated_file" in st.session_state:
             file_name=os.path.basename(st.session_state["generated_file"]),
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
+
         )
