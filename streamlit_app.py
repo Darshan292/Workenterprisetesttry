@@ -5,16 +5,16 @@ import multiprocessing
 from Converting_Data_Create_EIB_Final import (
     creating_eib_files_with_parallel_processing,
     load_file_params,
-    validate_required_fields_in_eib,
-)
+    validate_eib_sections)
+     
 
 # ==============================
 # CONFIGURATION
 # ==============================
 
-BASE_DIR = r"C:\Users\patel\Desktop\final code\\"
+BASE_DIR = r"/workspaces/Workenterprisetesttry/"
 TEMPLATE_DIR = os.path.join(BASE_DIR, "EIB")
-MAPPING_FILE_PATH = os.path.join(BASE_DIR, "EIB", "Combined_Mapping.xlsx")
+MAPPING_FILE_PATH = os.path.join(BASE_DIR, "EIB", "Combined_Mapping_added_own.xlsx")
 LOAD_TEMPLATE_MAPPING = {
     "Location": "Put_Location_v46.0.xlsx",
     "Job Profile": "Submit_Job_Profile_v46.0.xlsx",
@@ -182,28 +182,32 @@ if st.button(
                 validation_errors = None
 
         if os.path.exists(expected_output_path):
-            # new_mtime = os.path.getmtime(expected_output_path)
-            validation_errors = validate_required_fields_in_eib(expected_output_path)
-            # to change to see output
-            if not validation_errors: 
-                st.error("Required field validation failed.")
+            errors, warnings = validate_eib_sections(expected_output_path)
 
-                for column, count in validation_errors.items():
-                    st.error(f"{column}: {count} rows missing")
+             # -------- Errors --------
+            if errors:
+                st.error("❌ Validation Errors Found")
 
-            else:
+                for err in errors:
+                    st.error(
+                        f"Row {err['row']} | Section: {err['section']} | "
+                        f"Missing Fields: {', '.join(err['missing_fields'])}"
+                    )
+
+            # -------- Warnings --------
+            if warnings:
+                st.warning("⚠ Validation Warnings")
+
+                for warn in warnings:
+                    st.warning(
+                        f"Row {warn['row']} | Section: {warn['section']} | "
+                        f"Missing Fields: {', '.join(warn['missing_fields'])}"
+                    )
+
+    # -------- Success --------
+            if not errors and not warnings:
                 st.session_state["generated_file"] = expected_output_path
-            
-                # if validation_errors and len(validation_errors) > 0:
-                #     st.error("❌ Required Field Validation Failed")
-            
-                #     error_df = pd.DataFrame(validation_errors)
-            
-                #     st.markdown("### Missing Required Fields")
-                #     st.dataframe(error_df, use_container_width=True)
-            
-                # else:
-                st.success("Transformation completed successfully. All required fields are populated.")           
+                st.success("✅ EIB Validation Passed")          
         else:
             st.error("Output file not found.")
 

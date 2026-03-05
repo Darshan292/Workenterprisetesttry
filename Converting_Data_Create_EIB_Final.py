@@ -61,6 +61,10 @@ def get_mapped_location_data(input_data, mapping_file,
         'Location Name*': 8,
         'Location ID': 6,
         'Location Usage*+*': 9,
+        'Latitude':15,
+        'Longitude':16,
+        'Default Currency':22,
+        'Off Site':34,
         # 'Location Type+': 10,                     ///////////changed by darshan
         # 'Time Profile': 18,
         # 'Display Language': 20,
@@ -498,42 +502,177 @@ def get_mapping_data_dict(mapping_file):
     return mapping_data_dict
 
 
-
 from openpyxl import load_workbook
 
-def validate_required_fields_in_eib(eib_file_path):
+
+def validate_eib_sections(eib_file_path):
+
+    """print("======================================")
+    print("Opening Workbook:", eib_file_path)
+    print("======================================")"""
+
     wb = load_workbook(eib_file_path)
-    sheet = wb.active  # or specific sheet if needed
+    sheet = wb.active
 
-    required_columns = {}
-    data_start_row = 6
+    AREA_ROW = 2
+    REQ_ROW = 3
+    FIELD_ROW = 5
+    DATA_START_ROW = 6
 
-    # Step 1: Detect required columns from Row 3
+    """print("\nSheet Name:", sheet.title)
+    print("Total Columns:", sheet.max_column)
+    print("Total Rows:", sheet.max_row)"""
+
+    sections = {}
+    current_area = None
+
+   # print("\n======================================")
+    #print("STEP 1: Detect Sections")
+    #print("======================================")
+
     for col in range(1, sheet.max_column + 1):
-        cell_value = sheet.cell(row=3, column=col).value
 
-        if cell_value:
-            cell_value_str = str(cell_value).lower()
-            if "required" in cell_value_str:
-                header = sheet.cell(row=5, column=col).value
-                required_columns[col] = header
+        area_val = sheet.cell(row=AREA_ROW, column=col).value
+        restriction_val = sheet.cell(row=REQ_ROW, column=col).value
+        field_name = sheet.cell(row=FIELD_ROW, column=col).value
 
-    # Step 2: Count missing values per required column
-    errors = {}
+       # print("\n--- COLUMN", col, "---")
+       # print("Raw Area Value:", area_val)
+        #print("Format Value:", format_val)
+        #print("Field Name:", field_name)
 
-    for col, header in required_columns.items():
-        missing_count = 0
+        # forward fill merged area cells
+        if area_val:
+            current_area = area_val
 
-        for row in range(data_start_row, sheet.max_row + 1):
-            value = sheet.cell(row=row, column=col).value
+        area = current_area
 
-            if value is None or str(value).strip() == "":
-                missing_count += 1
+        #print("Resolved Area:", area)
 
-        if missing_count > 0:
-            errors[header] = missing_count
+        if not field_name:
+            #print("Skipping column because field_name is empty")
+            continue
 
-    return errors
+        if area not in sections:
+            sections[area] = []
+
+        is_required = False
+        if restriction_val and "required" in str(restriction_val).lower():
+            is_required = True
+
+        #print("Is Required:", is_required)
+
+        sections[area].append({
+            "col": col,
+            "field": field_name,
+            "required": is_required
+        })
+
+    #print("\n======================================")
+  #  print("SECTIONS DETECTED")
+   # print("======================================")
+
+    #for sec, cols in sections.items():
+      #  print("\nSECTION:", sec)
+        #for c in cols:
+          #  print("   Column:", c["col"], "| Field:", c["field"], "| Required:", c["required"])
+
+    errors = []
+    warnings = []
+
+    #print("\n======================================")
+    #print("STEP 2: Validate Rows")
+    #print("======================================")
+
+    for row in range(DATA_START_ROW, sheet.max_row + 1):
+
+        #print("\n--------------------------------------")
+       # print("Checking Row:", row)
+        #print("--------------------------------------")
+
+        for section, columns in sections.items():
+
+            #print("\nSECTION:", section)
+
+            section_values = []
+            required_values = []
+            required_fields = []
+
+            for col_info in columns:
+
+                value = sheet.cell(row=row, column=col_info["col"]).value
+
+                """print(
+                    "Column:",
+                    col_info["col"],
+                    "| Field:",
+                    col_info["field"],
+                    "| Value:",
+                    value,
+                    "| Required:",
+                    col_info["required"]
+                )l"""
+
+                section_values.append(value)
+
+                if col_info["required"]:
+                    required_values.append(value)
+                    required_fields.append(col_info["field"])
+
+            #print("Section Values:", section_values)
+           # print("Required Values:", required_values)
+
+            # Section completely empty
+            if all(v is None or str(v).strip() == "" for v in section_values):
+                #print("Section completely empty → SKIP")
+                continue
+
+            #print("Section has data → validating required fields")
+
+            filled_required = [
+                v for v in required_values if v not in (None, "", " ")
+            ]
+
+            #print("Filled Required Count:", len(filled_required))
+            #print("Total Required Fields:", len(required_values))
+
+            # ERROR: section has data but all required fields empty
+            if len(filled_required) == 0 and len(required_values) > 0:
+
+                #print("ERROR detected in section:", section)
+
+                errors.append({
+                    "row": row,
+                    "section": section,
+                    "missing_fields": required_fields
+                })
+
+            # WARNING: partially filled required fields
+            elif 0 < len(filled_required) < len(required_values):
+
+                #print("WARNING detected in section:", section)
+
+                warnings.append({
+                    "row": row,
+                    "section": section,
+                    "missing_fields": [
+                        f for f, v in zip(required_fields, required_values)
+                        if v in (None, "", " ")
+                    ]
+                })
+
+
+    """print("======================================")
+    print("FINAL RESULT")
+    print("======================================")
+
+    print("Errors:", errors)
+    print("Warnings:", warnings)"""
+
+    return errors, warnings
+   
+   
+
 
 
 
