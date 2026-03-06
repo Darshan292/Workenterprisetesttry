@@ -57,7 +57,7 @@ def get_mapped_location_data(input_data, mapping_file,
     columns_mapping = {
         'key': 2,
         'Add_Only': 3,
-        'Effective Date': 50,
+        'Effective Date': 7,
         'Location Name*': 8,
         'Location ID': 6,
         'Location Usage*+*': 9,
@@ -98,7 +98,7 @@ def get_mapped_location_data(input_data, mapping_file,
 
 def get_mapped_job_profile_data(input_data, mapping_file,
                                 all_unique_data_list, unavailable_reference_id_list):
-    convert_and_format_date(input_data, 'Effective Date')
+    # convert_and_format_date(input_data, 'Effective Date')
     input_data['Add_Only'] = 'Y'
 
     input_data = generate_row_id(input_data, 'Job Code','Job Title', "Row ID*")
@@ -107,7 +107,7 @@ def get_mapped_job_profile_data(input_data, mapping_file,
         # 'Add_Only': 3,
         #'Job Profile ID':4,
         'Job Code': 4,
-        'Effective Date': 5,
+        # 'Effective Date': 5,
         'Row ID*':6,
         'Inactive':7,
         'Job Title': 8,
@@ -330,14 +330,14 @@ def convert_data(input_data, sheet, load, mapping_file, mapping_data_dict,
         if load == "Location":
             idx += 1
             address_row = 1
-            sheet.cell(row=start_row, column=3, value="Y")
-            sheet.cell(row=start_row, column=44, value=1)
-            sheet.cell(row=start_row, column=71, value=idx)
-            sheet.cell(row=start_row, column=73, value=idx)
-            sheet.cell(row=start_row, column=72, value="Y")
-            sheet.cell(row=start_row, column=74, value="Y")
-            sheet.cell(row=start_row, column=75, value="BUSINESS")
-            sheet.cell(row=start_row, column=77, value="COMMUNICATION_USAGE_BEHAVIOR_TENANTED-6-10")
+            # sheet.cell(row=start_row, column=3, value="Y")
+            # sheet.cell(row=start_row, column=44, value=1)
+            # sheet.cell(row=start_row, column=71, value=idx)
+            # sheet.cell(row=start_row, column=73, value=idx)
+            # sheet.cell(row=start_row, column=72, value="Y")
+            # sheet.cell(row=start_row, column=74, value="Y")
+            # sheet.cell(row=start_row, column=75, value="BUSINESS")
+            # sheet.cell(row=start_row, column=77, value="COMMUNICATION_USAGE_BEHAVIOR_TENANTED-6-10")
 
             # if pd.notna(row['Primary Address - Line 1']):                 ///////////changed by darshan
             #     sheet.cell(row=start_row, column=2, value=last_index)
@@ -376,7 +376,7 @@ def convert_data(input_data, sheet, load, mapping_file, mapping_data_dict,
         if load == "Job Profile":
             idx += 1
 
-            sheet.cell(row=start_row, column=7, value="X")
+            # sheet.cell(row=start_row, column=7, value="X")
 
             # if pd.notna(row['Job Family*']):
             #     sheet.cell(row=start_row, column=19, value=idx)
