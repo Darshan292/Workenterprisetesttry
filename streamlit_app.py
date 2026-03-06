@@ -188,6 +188,9 @@ if st.button(
             if errors:
                 st.error("❌ Validation Errors Found")
 
+                if "generated_file" in st.session_state:
+                    del st.session_state["generated_file"]
+                    
                 for err in errors:
                     st.error(
                         f"Row {err['row']} | Section: {err['section']} | "

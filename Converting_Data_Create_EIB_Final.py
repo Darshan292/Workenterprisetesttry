@@ -64,6 +64,7 @@ def get_mapped_location_data(input_data, mapping_file,
         'Latitude':15,
         'Longitude':16,
         'Default Currency':22,
+        # 'Off Site':34, #testing error location
         # 'Location Type+': 10,                     ///////////changed by darshan
         # 'Time Profile': 18,
         # 'Display Language': 20,
@@ -93,8 +94,6 @@ def get_mapped_location_data(input_data, mapping_file,
                                                                                       all_unique_data_list,
                                                                                       unavailable_reference_id_list,
                                                                                       "Location")
-    #print("idhar hai")
-    #print(input_data.head())
     return input_data, columns_mapping, all_unique_values_list, un_available_reference_type_id
 
 def get_mapped_job_profile_data(input_data, mapping_file,
@@ -102,15 +101,14 @@ def get_mapped_job_profile_data(input_data, mapping_file,
     convert_and_format_date(input_data, 'Effective Date')
     input_data['Add_Only'] = 'Y'
 
-    input_data = generate_row_id(input_data, 'Job Code','Job Title', "Row Id*")
+    input_data = generate_row_id(input_data, 'Job Code','Job Title', "Row ID*")
     columns_mapping = {
         'Spreadsheet Key*': 2,
-        'Job Profile Reference':3,
         # 'Add_Only': 3,
         #'Job Profile ID':4,
         'Job Code': 4,
         'Effective Date': 5,
-        'Row Id*':6,
+        'Row ID*':6,
         'Inactive':7,
         'Job Title': 8,
         'Include Job Code in Name':9,
@@ -156,8 +154,6 @@ def get_mapped_job_profile_data(input_data, mapping_file,
     #                                                                                   unavailable_reference_id_list,
     #                                                                                   "Job Profile")
     # return input_data, columns_mapping, all_unique_values_list, un_available_reference_type_id
-    #print("input hai jiii")
-    #print(input_data.head())
 
     return input_data, columns_mapping, all_unique_data_list, unavailable_reference_id_list
 
@@ -316,11 +312,9 @@ def convert_data(input_data, sheet, load, mapping_file, mapping_data_dict,
                         for i, value in enumerate(cell_value_list):
                             sheet.cell(row=start_row, column=value, value=row[column])
                     else:
-                        value = None if pd.isna(row[column]) else row[column]
-                        #print(start_row, cell_value, row[column])
-                        sheet.cell(row=start_row, column=cell_value, value=value)
-        #print("sheet is")    
-        #for r in sheet.iter_rows(values_only=True): print(r)
+                        val = None if pd.isna(row[column]) else row[column]
+                        sheet.cell(row=start_row, column=cell_value, value=val)
+
         if load == 'One Time Payments':
             idx += 1
             sheet.cell(row=start_row, column=8, value=idx)
@@ -382,7 +376,7 @@ def convert_data(input_data, sheet, load, mapping_file, mapping_data_dict,
         if load == "Job Profile":
             idx += 1
 
-            sheet.cell(row=start_row, column=7, value="n")
+            sheet.cell(row=start_row, column=7, value="X")
 
             # if pd.notna(row['Job Family*']):
             #     sheet.cell(row=start_row, column=19, value=idx)
@@ -720,7 +714,7 @@ def process_load(load, all_unique_data_list, unavailable_reference_id_list, mapp
     elif load in ("Payment Elections", "Absence Input", "Supervisory Org", "Prehire", "Put Candidate", "Supplier",
                   "Add Workday Account", "Company", "Update Workday Account","Job Classification", "Job Family",
                   "Job Family Group", "Cost Center", "Location Hierarchy", "Custom Organizations", "Cost Center Hierarchy", "Collective Agreement",
-                   "Put Supervisory Assignment Restrictions", "Location", "Job Category", "Comp Grade and Grade Profile", "Skills",
+                   "Put Supervisory Assignment Restrictions", "Location", "Job Category", "Job Profile", "Comp Grade and Grade Profile", "Skills",
                    "Job History Company", "Skills Reference Data", "Future Prehire"):
         sheet_name = wb[sheet_names[0]]
         sheet_list.append(sheet_name)
@@ -742,11 +736,6 @@ def process_load(load, all_unique_data_list, unavailable_reference_id_list, mapp
                                                                                   all_unique_data_list,
                                                                                   unavailable_reference_id_list,
                                                                                   input_data_temp_file, eib_file_name)
-                                                                    
-        #print("dekhte hai bhai")
-       # print(type(sheet.cell(row=start_row, column=cell_value).value))
-        #print(sheet.cell(row=start_row, column=cell_value).value)
-
         # save the eib file and mark the load complete
         wb.save(eib_file_name)
         print("Completed " + load + " load")
