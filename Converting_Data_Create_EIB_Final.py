@@ -64,7 +64,6 @@ def get_mapped_location_data(input_data, mapping_file,
         'Latitude':15,
         'Longitude':16,
         'Default Currency':22,
-        'Off Site':34,
         # 'Location Type+': 10,                     ///////////changed by darshan
         # 'Time Profile': 18,
         # 'Display Language': 20,
