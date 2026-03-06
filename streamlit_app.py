@@ -196,6 +196,7 @@ if st.button(
 
             # -------- Warnings --------
             if warnings:
+                st.session_state["generated_file"] = expected_output_path
                 st.warning("⚠ Validation Warnings")
 
                 for warn in warnings:
